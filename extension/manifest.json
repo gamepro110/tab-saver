@@ -1,0 +1,25 @@
+{
+    "manifest_version": 2,
+    "name": "tab-saver",
+    "version": "0.0.1",
+    "author": "voidtools",
+    "description": "save all open tabs to a json file so its easier to transfer to another desktop",
+    "permissions": [
+        "storage",
+        "tabs"
+    ],
+    "icons": {
+        "32": "icons/logo_32.png"
+    },
+    "browser_action": {
+        "default_icon": "icons/logo_32.png",
+        "default_title": "tab-saver",
+        "default_popup": "/options.html"
+    },
+    "content_scripts": [
+        {
+            "matches": ["<all_urls>"],
+            "js": []
+        }
+    ]
+}

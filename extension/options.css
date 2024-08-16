@@ -1,0 +1,22 @@
+body {
+    background-color: #454545;
+}
+
+.hidden {
+    display: none;
+}
+
+button {
+    border: none;
+    width: 100%;
+    text-align: left;
+    padding: 4px;
+    cursor: pointer;
+    background-color: #454545;
+    color: #ccc;
+}
+
+button:hover {
+    background-color: #aaa;
+    color: #454545;
+}
