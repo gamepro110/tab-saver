@@ -1,3 +1,12 @@
+/*
+ * Copyright (C) 2024 voidtools - All Rights Reserved
+ * You may use, distribute and modify this code under the
+ * terms of the GNU GPL v3 license
+ *
+ * You should have received a copy of the GNU GPL v3 license with
+ * this file.
+ */
+
 // open new tab with view.html
 browser.browserAction.onClicked.addListener(() => {
     browser.tabs.create({
