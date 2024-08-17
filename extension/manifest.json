@@ -1,10 +1,11 @@
 {
     "manifest_version": 2,
     "name": "tab-saver",
-    "version": "0.0.1",
+    "version": "0.1.0",
     "author": "voidtools",
     "description": "save all open tabs to a json file so its easier to transfer to another desktop",
     "permissions": [
+        "<all_urls>",
         "storage",
         "tabs",
         "activeTab"
@@ -14,17 +15,21 @@
     },
     "browser_action": {
         "default_icon": "icons/logo_32.png",
-        "default_title": "tab-saver",
-        "default_popup": "/options.html"
+        "default_title": "tab-saver"
     },
     "content_scripts": [
         {
             "matches": ["<all_urls>"],
-            "js": []
+            "js": ["view.js"]
         }
     ],
     "background": {
         "scripts": ["options.js"],
         "persistent": false
+    },
+    "browser_specific_settings": {
+        "gecko": {
+            "id": "tab-saver@voidtools"
+        }
     }
 }

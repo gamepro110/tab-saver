@@ -1,4 +1,53 @@
-const seperatorChar = '|';
+// open new tab with view.html
+browser.browserAction.onClicked.addListener(() => {
+    browser.tabs.create({
+        url:        browser.runtime.getURL("view.html"),
+        index:      0
+    });
+});
+
+// listens to messages from view.js content-script
+browser.runtime.onMessage.addListener(async (req, sender, sendResponse) => {
+    // console.log( // check if content script
+    //     sender.tab
+    //     ? "content script: " + sender.tab.url
+    //     : "extension script"
+    // );
+    const reply = (response) => {
+        sendResponse({ response: response});
+    };
+    const checkRetVal = async (val, succesText, failText) => {
+        if (await val == -1) {
+            reply(failText);
+        }
+        else {
+            reply(succesText);
+        }
+    };
+
+    switch (req.tab_saver_cmd) {
+        case "save":
+            checkRetVal(
+                await SaveToFile(),
+                "saved to file",
+                "failed saving to file"
+            );
+            break;
+
+        case "load":
+            checkRetVal(
+                await LoadFromFile(),
+                "loaded file",
+                "failed loading file"
+            );
+            break;
+
+        default:
+            reply("invalid request");
+            break;
+    }
+});
+
 
 /**
  *
@@ -20,11 +69,10 @@ async function getMapOfTabsSeperatedByWindows() {
         winId = elem.windowId;
         if (winMap.has(winId)) {
             value = winMap.get(winId);
-            value.push(elem.url);// + seperatorChar;
+            value.push(elem.url);
             winMap.set(winId, value);
         }
         else {
-            // winMap.set(winId, elem.url);
             value = new Array();
             value.push(elem.url);
             winMap.set(winId, value);
@@ -43,7 +91,6 @@ async function SaveToFile() {
     try {
         const mapOfTabs = await getMapOfTabsSeperatedByWindows();
         let data = mapToJson(mapOfTabs);
-        console.log(data);
 
         const link = document.createElement("a");
         const file = new Blob([data], {type: 'text/json'});
@@ -54,47 +101,85 @@ async function SaveToFile() {
     }
     catch (err) {
         console.error(err);
+        return -1;
     }
+
+    return 0;
 }
 
 async function LoadFromFile() {
-    console.log("loading");
+    var content = "";
+
+    try {
+        var reader = new FileReader();
+        var input = document.createElement('input');
+        input.type = 'file';
+        input.multiple = false;
+
+        const filePromise = new Promise((resolve, reject) => {
+            input.onchange = function(changeEvent) {
+                const file = changeEvent.target.files[0];
+                if (file) {
+                    reader.readAsText(file, 'UTF-8');
+                }
+                else {
+                    reject(new Error("no file selected"));
+                }
+            };
+
+            reader.onload = function(readerEvent) {
+                const text = readerEvent.target.result;
+                resolve(text);
+            };
+
+            reader.onerror = function(err) {
+                reject(err);
+            };
+        });
+
+        input.click();
+        content = await filePromise;
+    }
+    catch (err) {
+        console.error(err);
+        return -1;
+    }
+
+    const tabMap = stringToMap(content);
+    await OpenTabsFromMap(tabMap);
+    return 0
 }
 
-async function actionLister() {
-    document.addEventListener("click", (e) => {
-        async function RunAction(actionName) {
-            switch (actionName) {
-                case "save":
-                    await SaveToFile();
-                    break;
+function stringToMap(str) {
+    const jsonObj = JSON.parse(str);
+    const entries = Object.entries(jsonObj);
+    const map = new Map(entries);
+    return map;
+}
 
-                case "load":
-                    await LoadFromFile();
-                    break;
+async function OpenTabsFromMap(map) {
+    let previousKey = undefined;
+    let currentWindow = undefined;
+    await map.forEach(async (value, key) => {
+        if (key != previousKey) {
+            previousKey = key;
+            currentWindow = await browser.windows.create({});
+        }
+        await value.forEach(async (url) => {
+            await browser.tabs.create({
+                url: url,
+                windowId: currentWindow.id
+            });
+        });
 
-                default:
-                    console.error(actionName, " does not exist");
-                    break;
+        const emptyTabs = await browser.tabs.query({
+            title: "New Tab",
+            windowId: currentWindow.id
+        });
+        await browser.tabs.remove(emptyTabs.map(t=>t.id))
+            .catch((e) => {
+                console.error("failed closing tabs: ", e);
             }
-        }
-
-        if (e.target.tagName !== "BUTTON" || !e.target.closest("#optionBtns")) {
-            // ignore everything thats not our buttons
-            return;
-        }
-
-        RunAction(e.target.id);
+        );
     });
 }
-
-function reportExecuteScriptError(error) {
-    document.querySelector("#optionBtns").classList.add("hidden");
-    document.querySelector("#error-content").classList.remove("hidden");
-    console.error(`Failed to execute action script: ${error.message}`);
-}
-
-browser.tabs
-    .executeScript({ file: "/actions/options.js" })
-    .then(actionLister)
-    .catch(reportExecuteScriptError);

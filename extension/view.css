@@ -6,6 +6,14 @@ body {
     display: none;
 }
 
+h1 {
+    color: #ccc;
+}
+
+#statusStr {
+    color:#ccc
+}
+
 button {
     border: none;
     width: 100%;
