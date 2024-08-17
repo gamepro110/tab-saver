@@ -6,7 +6,8 @@
     "description": "save all open tabs to a json file so its easier to transfer to another desktop",
     "permissions": [
         "storage",
-        "tabs"
+        "tabs",
+        "activeTab"
     ],
     "icons": {
         "32": "icons/logo_32.png"
@@ -21,5 +22,9 @@
             "matches": ["<all_urls>"],
             "js": []
         }
-    ]
+    ],
+    "background": {
+        "scripts": ["options.js"],
+        "persistent": false
+    }
 }
