@@ -25,7 +25,7 @@
     ],
     "background": {
         "scripts": ["options.js"],
-        "persistent": false
+        "persistent": true
     },
     "browser_specific_settings": {
         "gecko": {

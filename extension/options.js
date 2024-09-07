@@ -11,48 +11,70 @@
 browser.browserAction.onClicked.addListener(() => {
     browser.tabs.create({
         url:        browser.runtime.getURL("view.html"),
-        index:      0
+        // index:      0
     });
 });
 
 // listens to messages from view.js content-script
-browser.runtime.onMessage.addListener(async (req, sender, sendResponse) => {
+browser.runtime.onMessage.addListener(async (incommingMessage, sender, sendResponse) => {
     // console.log( // check if content script
     //     sender.tab
     //     ? "content script: " + sender.tab.url
     //     : "extension script"
     // );
-    const reply = (response) => {
-        sendResponse({ response: response});
-    };
-    const checkRetVal = async (val, succesText, failText) => {
-        if (await val == -1) {
-            reply(failText);
-        }
-        else {
-            reply(succesText);
-        }
-    };
 
-    switch (req.tab_saver_cmd) {
+    if (sender.id != "tab-saver@voidtools") {
+        return Promise(_, fail => {
+            fail("invalid source");
+        });
+    }
+
+    /**
+     * @param {Promise<0|-1>} action
+     * @param {String} onSucces
+     * @param {String} onFail
+     * @returns {Promise<String>}
+     */
+    function CheckRetVal(action, onSucces, onFail) {
+        return new Promise((resolve)=>{
+            action().then(val =>{
+                if (val == -1) {
+                    resolve(onFail);
+                }
+                else {
+                    resolve(onSucces);
+                }
+            });
+        });
+    }
+
+    // const checkRetVal = async (val, succesText, failText) => {
+    //     if (await val == -1) {
+    //         reply(failText);
+    //     }
+    //     else {
+    //         reply(succesText);
+    //     }
+    // };
+
+    switch (incommingMessage.tab_saver_cmd) {
         case "save":
-            checkRetVal(
-                await SaveToFile(),
+            return CheckRetVal(
+                SaveToFile,
                 "saved to file",
                 "failed saving to file"
             );
-            break;
-
         case "load":
-            checkRetVal(
-                await LoadFromFile(),
+            CheckRetVal(
+                LoadFromFile,
                 "loaded file",
                 "failed loading file"
             );
-            break;
-
         default:
-            reply("invalid request");
+            // reply("invalid request");
+            return Promise(_, fail => {
+                fail("invalid request");
+            });
             break;
     }
 });
