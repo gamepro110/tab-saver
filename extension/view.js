@@ -25,14 +25,14 @@ function handleError(err) {
 }
 
 async function sendSave() {
-    const sending = await browser.runtime.sendMessage({
+    const sending = browser.runtime.sendMessage({
         tab_saver_cmd: "save"
     });
     sending.then(handleResponse, handleError);
 }
 
 async function sendLoad() {
-    const sending = await browser.runtime.sendMessage({
+    const sending = browser.runtime.sendMessage({
         tab_saver_cmd: "load"
     });
     sending.then(handleResponse, handleError);

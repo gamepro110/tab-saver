@@ -8,7 +8,8 @@
         "<all_urls>",
         "storage",
         "tabs",
-        "activeTab"
+        "activeTab",
+        "downloads"
     ],
     "icons": {
         "32": "icons/logo_32.png"

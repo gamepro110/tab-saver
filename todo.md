@@ -1,5 +1,7 @@
 # todo
 
+- [ ] fix download issue
+  - currently downloads a `.json.part` file
 - [ ] add indented tab support
   - peek at treestyle tabs
 

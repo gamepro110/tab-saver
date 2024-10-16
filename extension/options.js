@@ -16,7 +16,7 @@ browser.browserAction.onClicked.addListener(() => {
 });
 
 // listens to messages from view.js content-script
-browser.runtime.onMessage.addListener(async (incommingMessage, sender, sendResponse) => {
+browser.runtime.onMessage.addListener(async (incommingMessage, sender) => {
     // console.log( // check if content script
     //     sender.tab
     //     ? "content script: " + sender.tab.url
@@ -24,7 +24,7 @@ browser.runtime.onMessage.addListener(async (incommingMessage, sender, sendRespo
     // );
 
     if (sender.id != "tab-saver@voidtools") {
-        return Promise(_, fail => {
+        return Promise(fail => {
             fail("invalid source");
         });
     }
@@ -65,7 +65,7 @@ browser.runtime.onMessage.addListener(async (incommingMessage, sender, sendRespo
                 "failed saving to file"
             );
         case "load":
-            CheckRetVal(
+            return CheckRetVal(
                 LoadFromFile,
                 "loaded file",
                 "failed loading file"
@@ -75,7 +75,6 @@ browser.runtime.onMessage.addListener(async (incommingMessage, sender, sendRespo
             return Promise(_, fail => {
                 fail("invalid request");
             });
-            break;
     }
 });
 
@@ -121,7 +120,7 @@ function mapToJson(map) {
 async function SaveToFile() {
     try {
         const mapOfTabs = await getMapOfTabsSeperatedByWindows();
-        let data = mapToJson(mapOfTabs);
+        const data = mapToJson(mapOfTabs);
 
         const link = document.createElement("a");
         const file = new Blob([data], {type: 'text/json'});
