@@ -114,7 +114,7 @@ async function getMapOfTabsSeperatedByWindows() {
 }
 
 function mapToJson(map) {
-    return JSON.stringify(Object.fromEntries(map));
+    return JSON.stringify(Object.fromEntries(map), null, 2);
 }
 
 async function SaveToFile() {
@@ -122,12 +122,16 @@ async function SaveToFile() {
         const mapOfTabs = await getMapOfTabsSeperatedByWindows();
         const data = mapToJson(mapOfTabs);
 
-        const link = document.createElement("a");
-        const file = new Blob([data], {type: 'text/json'});
-        link.href = URL.createObjectURL(file);
-        link.download = fileName();
-        link.click();
-        URL.revokeObjectURL(link.href);
+        const blob = new Blob([data], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        browser.downloads.download({
+            url: url,
+            filename: fileName(),
+            saveAs: true,
+        }, (downloadId)=>{
+            console.log("download started with id ", downloadId);
+        });
+
     }
     catch (err) {
         console.error(err);
