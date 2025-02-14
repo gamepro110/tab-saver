@@ -7,6 +7,8 @@
  * this file.
  */
 
+const wildcardUrl = '\*://\*/\*';
+
 // open new tab with view.html
 browser.browserAction.onClicked.addListener(() => {
     browser.tabs.create({
@@ -48,16 +50,13 @@ browser.runtime.onMessage.addListener(async (incommingMessage, sender) => {
         });
     }
 
-    // const checkRetVal = async (val, succesText, failText) => {
-    //     if (await val == -1) {
-    //         reply(failText);
-    //     }
-    //     else {
-    //         reply(succesText);
-    //     }
-    // };
-
     switch (incommingMessage.tab_saver_cmd) {
+        case "saveWin":
+            return CheckRetVal(
+                SaveWinToFile,
+                "saved current window tabs to file",
+                "failed to save current window tabs"
+            );
         case "save":
             return CheckRetVal(
                 SaveToFile,
@@ -78,7 +77,6 @@ browser.runtime.onMessage.addListener(async (incommingMessage, sender) => {
     }
 });
 
-
 /**
  *
  * @returns {string} filename string with current date
@@ -87,11 +85,11 @@ function fileName() {
     let date = new Date();
     let dateStr = date.toISOString().split('T')[0];
     let timeStr = date.toLocaleTimeString('nl-NL', {hour: "2-digit", minute: "2-digit"}).replaceAll(':', '-');
-    return "tab-saver-" + dateStr + "_" + timeStr + ".json";
+    return "tsj-" + dateStr + "_" + timeStr + ".json";
 }
 
 async function getMapOfTabsSeperatedByWindows() {
-    const openWin = await browser.tabs.query({ url: '\*://\*/\*' });
+    const openWin = await browser.tabs.query({ url: wildcardUrl });
     let winMap = new Map();
     let value = "";
     let winId = -1;
@@ -117,21 +115,27 @@ function mapToJson(map) {
     return JSON.stringify(Object.fromEntries(map), null, 2);
 }
 
+/**
+ * @param {string} Data
+ */
+async function DownloadData(Data, fileName = "tab-saver.json") {
+    const blob = new Blob([Data], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    browser.downloads.download({
+        url: url,
+        filename: fileName,
+        saveAs: true,
+    }, (downloadId)=>{
+        // console.log("download started with id ", downloadId);
+    });
+}
+
 async function SaveToFile() {
     try {
         const mapOfTabs = await getMapOfTabsSeperatedByWindows();
         const data = mapToJson(mapOfTabs);
 
-        const blob = new Blob([data], { type: "application/json" });
-        const url = URL.createObjectURL(blob);
-        browser.downloads.download({
-            url: url,
-            filename: fileName(),
-            saveAs: true,
-        }, (downloadId)=>{
-            console.log("download started with id ", downloadId);
-        });
-
+        DownloadData(data, fileName());
     }
     catch (err) {
         console.error(err);
@@ -139,6 +143,29 @@ async function SaveToFile() {
     }
 
     return 0;
+}
+
+async function SaveWinToFile() {
+    try {
+        const rawTabs = await browser.tabs.query({
+            currentWindow: true
+        });
+        map = new Map();
+        map.set(1, new Array());
+
+        rawTabs.forEach(tab => {
+            let list = map.get(1);
+            list.push(tab.url);
+            map.set(1, list);
+        });
+
+        const data = mapToJson(map);
+
+        DownloadData(data);
+    } catch (err) {
+        console.error(err);
+        return -1;
+    }
 }
 
 async function LoadFromFile() {
