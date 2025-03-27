@@ -24,24 +24,28 @@ function handleError(err) {
     console.error(err);
 }
 
-async function sendSave() {
+async function sendMsg(evt) {
     const sending = browser.runtime.sendMessage({
-        tab_saver_cmd: "save"
+        tab_saver_cmd: evt.currentTarget.my_cmd
     });
     sending.then(handleResponse, handleError);
 }
 
-async function sendLoad() {
-    const sending = browser.runtime.sendMessage({
-        tab_saver_cmd: "load"
-    });
-    sending.then(handleResponse, handleError);
+/**
+ * registers a callback to the backend of the extension
+ * @param {HTMLButtonElement} button
+ * @param {string} cmd
+ */
+function registerCallback(button, cmd = "=_=") {
+    button.addEventListener("click", sendMsg);
+    button.my_cmd = "" + cmd;
 }
 
-// window.addEventListener("click", sendSave);
-const saveBtn = document.getElementById("save");
+const saveWinBtn = document.getElementById("saveWin");
+const saveBtn = document.getElementById("saveAll");
 const loadBtn = document.getElementById("load");
 const statusDiv = document.getElementById("statusStr");
 
-saveBtn.addEventListener("click", sendSave);
-loadBtn.addEventListener("click", sendLoad);
+registerCallback(saveWinBtn, "saveWin");
+registerCallback(saveBtn, "save");
+registerCallback(loadBtn, "load");

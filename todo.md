@@ -2,6 +2,15 @@
 
 - [ ] add indented tab support
   - peek at treestyle tabs
+  - custom object?
+    -
+    ```mermaid
+    classDiagram
+    class VTab {
+        string url
+        list~VTab~ children
+    }
+    ```
 
 ## shortcuts
 
