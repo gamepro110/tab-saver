@@ -37,6 +37,9 @@ async function sendMsg(evt) {
  * @param {string} cmd
  */
 function registerCallback(button, cmd = "=_=") {
+    if (button === null) {
+        return;
+    }
     button.addEventListener("click", sendMsg);
     button.my_cmd = "" + cmd;
 }

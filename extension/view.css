@@ -19,8 +19,19 @@ h1 {
     color: #ccc;
 }
 
+h3 {
+    color: #ddd;
+    margin: 10px 10px;
+}
+
+.footer {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+}
+
 #statusStr {
-    color:#ccc
+    color:#ccc;
 }
 
 button {
